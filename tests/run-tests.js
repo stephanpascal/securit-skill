@@ -99,6 +99,47 @@ const GR = ['A', 'B', 'C', 'D', 'E'];
     if (!ok) { failures++; console.log(out); }
   }
 
+  // Nommage : codes produit / solution lus dans l'URL de l'entreprise
+  {
+    const { res, paths } = await runAudit({ url: 'https://gitlab-entreprise.com/tribu-socle-0001/cats/p1234/s5678/fe01', path: dirs.feClean, offline: true, noApi: true, out: OUT, noSave: true, quiet: true });
+    const base = path.basename(paths.rapport);
+    const ok = res.projet.codeProduit === 'P1234' && res.projet.codeSolution === 'S5678' && res.projet.identifiant === 'P1234_S5678_fe01'
+      && /^P1234_S5678_fe01_\d{4}-\d{2}-\d{2}_\d{6}\.md$/.test(base) && path.basename(path.dirname(path.dirname(paths.rapport))) === 'P1234_S5678_fe01';
+    console.log(`${ok ? '✅' : '❌'} nommage : ${base}`);
+    if (!ok) failures++;
+  }
+
+  // Affichage : catégorie non évaluée et regroupement des vulnérabilités dans le résumé
+  {
+    // Sans token : « non évalué » ; API désactivée volontairement (--no-api / gitlab.api=false) : « désactivé », absent des contrôles partiels
+    const { paths } = await runAudit({ name: 'affichage', url: 'https://gitlab-entreprise.com/g/p1/s2/fe-propre', path: dirs.feClean, offline: true, out: OUT, noSave: true, quiet: true });
+    const full = fs.readFileSync(paths.rapport, 'utf8');
+    const r2 = await runAudit({ name: 'affichage2', path: dirs.feClean, offline: true, noApi: true, out: OUT, noSave: true, quiet: true });
+    const full2 = fs.readFileSync(r2.paths.rapport, 'utf8');
+    const resume2 = fs.readFileSync(r2.paths.resume, 'utf8');
+    const okCat = /\| GitLab \(merge requests, protections\) \| ⏭️ non évalué \|/.test(full)
+      && /\| GitLab \(merge requests, protections\) \| ➖ désactivé \|/.test(full2) && !/GitLab : merge requests/.test(resume2);
+    const { renderSummary } = require('../lib/report');
+    const mk = (i, sev) => ({ rule: 'DEP_VULNERABILITE', title: 'Vulnérabilité connue', severity: sev, category: 'dependances', evidence: `p${i}@1.0.0` });
+    const fake = { projet: { nom: 'x', type: 'bff' }, analyse: { date: new Date().toISOString(), mode: 'hors ligne' }, notation: { note: 'C', risque: 'Significatif', score: 60, plafonds: [], compte: {} }, scanners: [],
+      constats: [...Array.from({ length: 20 }, (_, i) => mk(i, i < 2 ? 'high' : 'medium')), { rule: 'DOCKER_UTILISATEUR_ROOT', title: 'Root', severity: 'medium', category: 'docker', evidence: 'x' }] };
+    const sum = renderSummary(fake, { rapport: 'r', aVerifier: 'a', json: 'j' });
+    const okSum = (sum.match(/\[DEP_VULNERABILITE\]/g) || []).length === 0 && /20 paquet\(s\)/.test(sum) && /DOCKER_UTILISATEUR_ROOT/.test(sum);
+    console.log(`${okCat && okSum ? '✅' : '❌'} affichage : GitLab « non évalué », vulnérabilités regroupées en une ligne dans le résumé`);
+    if (!(okCat && okSum)) failures++;
+  }
+
+  // Diagnostic du poste (sans réseau)
+  {
+    const { execFileSync } = require('child_process');
+    let out = ''; let code = 0;
+    try { out = execFileSync(process.execPath, [path.join(__dirname, '..', 'audit.js'), '--diagnostic', '--offline'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); }
+    catch (e) { out = String(e.stdout || ''); code = e.status; }
+    const ok = code === 0 && /Node\.js/.test(out) && /git version/.test(out) && /Tests réseau ignorés/.test(out) && !/GITLAB_TOKEN = "glpat/.test(out);
+    console.log(`${ok ? '✅' : '❌'} diagnostic du poste (hors ligne)`);
+    if (!ok) { failures++; console.log(out); }
+  }
+
   console.log(failures ? `\n${failures} test(s) en échec` : '\nTous les tests passent.');
   // Les projets piégés générés ressemblent volontairement à des malwares : on les supprime pour
   // ne pas déclencher d'antivirus (archive, email…). KEEP=1 pour les conserver et les examiner.

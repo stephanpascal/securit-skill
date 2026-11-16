@@ -9,7 +9,7 @@ Objectif : adapter l'outil skill-analyse à **mes** projets (${input:projet:nom 
 
 Respecte les règles de `.github/copilot-instructions.md` et la procédure de la section 8 de `docs/GUIDE-DEVELOPPEMENT.md`.
 
-1. Lance `node audit.js <nom> <url|--path dossier> --keep --no-save` et lis `resume.md` puis `rapport.md` (section 3, détail par catégorie).
+1. Lance `node audit.js <url> --keep --no-save` (ou `node audit.js <nom> --path <dossier> --produit P1234 --solution S5678 --no-save`) et lis `resume.md` puis le rapport complet indiqué après `RAPPORT` (section 3, détail par catégorie).
 2. Pour chaque constat, vérifie dans le clone (`workspace/…`) et classe-le : **vrai problème**, **faux positif entreprise**, **faux positif projet**, **règle trop bruyante pour ce type**, **motif trop large**, **paquet légitime**.
 3. Présente-moi un tableau : constat → classement → action proposée (fichier à modifier, changement exact). Ordre de préférence des actions : `config/settings.local.json` → `profils` → `allowlists/<projet>.json` (avec justification et expiration) → `rules/*.json` → modification d'une règle dans le code.
 4. Cherche les **oublis** : éléments spécifiques à ce projet (conventions nginx, structure Helm, bibliothèques internes, images de base, endpoints) que l'outil devrait vérifier et ne vérifie pas. Propose les règles correspondantes.

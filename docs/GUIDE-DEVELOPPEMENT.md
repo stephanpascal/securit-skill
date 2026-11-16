@@ -43,7 +43,7 @@ Sommaire :
 5. **Environnement** (`lib/env.js`) : outils externes présents, accès réseau (OSV, registre, GitLab).
 6. **Scanners** exécutés dans l'ordre de `SCANNERS` (voir §5). Chacun reçoit le même `ctx`.
 7. **Post-traitement** : dédoublonnage → **profil** du type de projet (règles ramenées à Info) → **exclusions** (`allowlists/`) → tri → extraits de code pour les points à juger.
-8. **Notation** (`lib/scoring.js`) et **comparaison** avec `reports/<nom>/derniere-analyse.json`.
+8. **Notation** (`lib/scoring.js`) et **comparaison** avec `reports/<identifiant>/derniere-analyse.json`. L'identifiant vaut `P1234_S5678_fe01` : codes produit et solution lus dans l'URL par `parseProjectCodes` (segments `p\d+` / `s\d+`, ou options `--produit` / `--solution`), puis nom du projet, assemblés par `reportBaseName` dans `lib/cli.js`. Le rapport complet s'appelle `<identifiant>_<horodatage>.md`. Les exclusions sont cherchées dans `allowlists/<identifiant>.json` puis `allowlists/<nom>.json`.
 9. **Masquage global des secrets** (`lib/sanitize.js` → `maskDeep`) puis écriture des rapports (`lib/report.js`).
 10. Suppression du clone (sauf `--keep`).
 
@@ -62,7 +62,8 @@ Sommaire :
 | `lib/tar.js` | `extractTgz(buffer)` : lecture en mémoire d'archives npm / charts Helm |
 | `lib/git.js` | `git(args, cwd)` sécurisé : hooks neutralisés, `protocol.file` et `ext` interdits, sous-modules désactivés, LFS non téléchargé |
 | `lib/clone.js` | `cloneRepo`, `repoInfo`, `parseGitlabUrl`, validation d'URL |
-| `lib/cli.js` | Analyse des options communes à `audit.js` et `audit-lot.js` |
+| `lib/cli.js` | Analyse des options communes à `audit.js` et `audit-lot.js` ; identifiant `P1234_S5678_projet` |
+| `lib/diagnostic.js` | `node audit.js --diagnostic [url]` : vérification du poste (Node, git, configuration, proxy/certificat, registre, OSV, GitLab, token et ses droits, accès au projet et rôle). Toute nouvelle dépendance à l'environnement doit y être ajoutée. |
 | `lib/sanitize.js` | `maskDeep`, `maskString`, `sanitizeUrl`, `sanitizeText` |
 | `lib/allowlist.js` | Chargement et application des exclusions |
 | `lib/scoring.js` | `computeScore`, `failsThreshold` |
@@ -309,7 +310,7 @@ L'outil manipule du code potentiellement hostile. À préserver lors de toute é
 |---|---|---|
 | `resume.md` | IA | Note, compteurs, 15 principaux constats, contrôles partiels, chemins |
 | `a-verifier.md` | IA | Constats `needsReview` avec extrait ± 4 lignes et consigne de verdict |
-| `rapport.md` | Humain | Synthèse, notes par catégorie, évolution, contrôles effectués, détail par règle (pourquoi / recommandation / occurrences), inventaire, exclusions, méthode |
+| `<identifiant>_<horodatage>.md` | Humain | Rapport complet : codes produit / solution, synthèse, notes par catégorie, évolution, contrôles effectués, détail par règle (pourquoi / recommandation / occurrences), inventaire, exclusions, méthode |
 | `resultats.json` | Machine | Tout le résultat (sert aussi de référence `derniere-analyse.json`) |
 | `_lots/<date>/synthese.md` | IA / humain | Tableau de bord multi-projets |
 

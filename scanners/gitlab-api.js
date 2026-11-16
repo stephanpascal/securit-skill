@@ -77,7 +77,8 @@ module.exports = {
     const tokenEnv = ctx.config.gitlab.tokenEnv || 'GITLAB_TOKEN';
     const token = process.env[tokenEnv];
     const gl = ctx.gitlab;
-    if (ctx.options.noApi) return { findings, status: 'non exécuté', notes: ['Désactivé (--no-api).'] };
+    if (ctx.options.noApi) return { findings, status: 'non applicable', notes: ['API GitLab désactivée (--no-api) : analyse par clone local uniquement.'] };
+    if (ctx.config.gitlab.api === false) return { findings, status: 'non applicable', notes: ['API GitLab désactivée par choix (gitlab.api = false) : analyse par clone local uniquement. Approbations, auteurs des merges et réglages du projet ne sont pas vérifiés ; les pushs directs sont estimés depuis l\'historique git.'] };
     if (!gl || !gl.projectPath) return { findings, status: 'non exécuté', notes: ['URL GitLab non fournie (analyse d\'un dossier local).'] };
     if (ctx.offline || !token || !ctx.network.gitlab) {
       const why = ctx.offline ? 'mode hors ligne' : !token ? `variable ${tokenEnv} absente` : 'API GitLab inaccessible';

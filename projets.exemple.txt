@@ -1,8 +1,9 @@
 # Liste de projets pour : node audit-lot.js --fichier projets.txt
-# Une ligne par projet : nom  url  [options propres au projet]
-# (format CSV accepté aussi : nom;url;options)   — les lignes commençant par # sont ignorées
+# Une ligne par projet : l'URL GitLab suffit (le nom du rapport est déduit de l'URL).
+# Options propres à un projet possibles après l'URL (ex. --ref 2.3.1, --type helm, --days 15).
+# Pour choisir le nom du rapport : « nom url [options] ».   Les lignes commençant par # sont ignorées.
 
-fe01      https://gitlab.entreprise.fr/equipe/fe01.git
-bff01     https://gitlab.entreprise.fr/equipe/bff01.git     --ref 2.3.1
-helm01    https://gitlab.entreprise.fr/equipe/helm01.git    --days 15
-# fe02    git@gitlab.entreprise.fr:equipe/fe02.git          --type fe
+https://gitlab.entreprise.fr/equipe/fe01.git
+https://gitlab.entreprise.fr/equipe/bff01.git     --ref 2.3.1
+https://gitlab.entreprise.fr/equipe/helm01.git    --days 15
+# front-principal  git@gitlab.entreprise.fr:equipe/fe02.git

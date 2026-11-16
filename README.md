@@ -33,6 +33,21 @@ powershell -ExecutionPolicy Bypass -File tools\setup-tools.ps1            # opti
 
 `install.ps1` copie le skill dans `~/.copilot/skills/security-audit/`, le prompt dans le profil VS Code, et crée `config/settings.local.json` à compléter.
 
+### Vérifier que le poste est prêt
+
+```powershell
+node audit.js --diagnostic https://gitlab-entreprise.com/tribu-socle-xxxx/cats/p1234/s5678/fe01
+```
+
+En quelques secondes, avec ✅ / ⚠️ / ❌ et la solution pour chaque problème :
+- logiciels : Node.js, git, outils optionnels ;
+- configuration : Artifactory, scopes internes, domaines, dossiers accessibles en écriture ;
+- réseau : proxy, certificat d'entreprise, registre npm, OSV, API GitLab ;
+- token GitLab : présence, validité, droits ;
+- projet : identifiant lu dans l'URL, accès git, rôle sur le projet (Maintainer requis pour les contrôles de plateforme).
+
+Aucun secret n'est affiché. Ajouter `--offline` pour ne pas tester le réseau.
+
 ### Configuration (`config/settings.local.json`)
 
 | Clé | Rôle |
@@ -43,6 +58,7 @@ powershell -ExecutionPolicy Bypass -File tools\setup-tools.ps1            # opti
 | `npm.paquetsInternesNonScopes` | Paquets internes sans scope : vérifie qu'ils n'existent pas sur npmjs. |
 | `docker.registresAutorises` | Registres d'images autorisés (Dockerfile et manifestes). |
 | `helm.depotsAutorises` | Dépôts de charts autorisés. |
+| `gitlab.api` | `"auto"` (défaut) : API utilisée si un token est présent ; `false` : **analyse par clone local uniquement**, aucun appel à l'API, aucun avertissement de token. |
 | `gitlab.url` | URL de l'instance GitLab (sinon déduite de l'URL du projet). |
 | `domaines.internes` | Domaines considérés comme internes (proxy, URL du code). |
 | `domaines.emailsDeveloppeurs` | Domaines email attendus des auteurs de commits (ex. `entreprise.fr`). |
@@ -59,15 +75,18 @@ Variables d'environnement : `GITLAB_TOKEN`, `NPM_TOKEN` (Artifactory si authenti
 ### Depuis Copilot Chat (mode Agent)
 
 ```
-/security-audit fe01 https://gitlab.entreprise.fr/equipe/fe01.git
-/security-audit bff01 git@gitlab.entreprise.fr:equipe/bff01.git --ref 2.3.1
+/security-audit https://gitlab.entreprise.fr/equipe/fe01.git
+/security-audit https://gitlab.entreprise.fr/equipe/fe01.git https://gitlab.entreprise.fr/equipe/bff01.git https://gitlab.entreprise.fr/equipe/helm01.git
+/security-audit git@gitlab.entreprise.fr:equipe/bff01.git --ref 2.3.1
 ```
+
+Le nom de chaque rapport est déduit de l'URL (`…/equipe/fe01.git` → `fe01`). Pour choisir un autre nom, le placer avant l'URL : `/security-audit front-principal https://…/fe01.git`.
 
 ### En ligne de commande
 
 ```powershell
-node audit.js fe01 https://gitlab.entreprise.fr/equipe/fe01.git
-node audit.js helm01 https://gitlab.entreprise.fr/equipe/helm01.git --ref 1.4.0 --days 90
+node audit.js https://gitlab.entreprise.fr/equipe/fe01.git
+node audit.js https://gitlab.entreprise.fr/equipe/helm01.git --ref 1.4.0 --days 90
 node audit.js bff01 --path D:\dev\bff01                 # dossier déjà présent
 node audit.js bff01 https://…/bff01.git --path D:\dev\bff01   # dossier local + contrôles API GitLab
 ```
@@ -88,21 +107,21 @@ node audit.js bff01 https://…/bff01.git --path D:\dev\bff01   # dossier local 
 ### Plusieurs projets en une commande
 
 ```powershell
-# paires nom / URL en arguments (les options s'appliquent à tous)
-node audit-lot.js fe01 https://…/fe01.git bff01 https://…/bff01.git helm01 https://…/helm01.git --days 60
+# liste d'URL (les options s'appliquent à tous ; les noms sont déduits des URL)
+node audit-lot.js https://…/fe01.git https://…/bff01.git https://…/helm01.git --days 60
 
 # ou fichier de projets (voir projets.exemple.txt), chaque ligne pouvant avoir ses propres options
 node audit-lot.js --fichier projets.txt
 ```
 
 ```text
-# projets.txt
-fe01    https://gitlab.entreprise.fr/equipe/fe01.git
-bff01   https://gitlab.entreprise.fr/equipe/bff01.git    --ref 2.3.1
-helm01  https://gitlab.entreprise.fr/equipe/helm01.git
+# projets.txt — une URL par ligne
+https://gitlab.entreprise.fr/equipe/fe01.git
+https://gitlab.entreprise.fr/equipe/bff01.git    --ref 2.3.1
+https://gitlab.entreprise.fr/equipe/helm01.git
 ```
 
-Dans Copilot : `/security-audit fe01 <url1> bff01 <url2>` ou `/security-audit --fichier D:\listes\projets.txt`.
+Dans Copilot : `/security-audit <url1> <url2> <url3>` ou `/security-audit --fichier D:\listes\projets.txt`.
 
 Les projets sont analysés à la suite ; une erreur (dépôt inaccessible…) n'interrompt pas le lot. Chaque projet garde ses rapports habituels, et une **synthèse** est produite dans `reports/_lots/<date>/synthese.md` (+ `synthese.json`) : tableau de bord trié du plus au moins risqué, évolution depuis l'analyse précédente, projets à examiner en priorité (D/E) et projets en erreur. Avec `--ci`, le code de sortie vaut 2 si un projet atteint le seuil ou échoue. Copilot ne lit que la synthèse, puis les résumés des projets notés D ou E.
 
@@ -117,16 +136,27 @@ La section `profils` de la configuration ajuste l'analyse par type (`fe`, `bff`,
 
 ## Rapports produits
 
-Dans `reports/<nom>/<date>/` :
+Le **code produit** (`pXXXX`) et le **code solution** (`sXXXX`) sont lus dans l'URL GitLab, par exemple `https://gitlab-entreprise.com/tribu-socle-xxxx/cats/p1234/s5678/fe01`. Ils sont mis en majuscules et forment l'identifiant du projet `P1234_S5678_fe01`. Les codes absents de l'URL sont omis ; pour un dossier local, utilisez `--produit` et `--solution`.
+
+```text
+reports\
+  P1234_S5678_fe01\                              ← historique du projet
+    derniere-analyse.json                        ← référence de comparaison
+    P1234_S5678_fe01_2026-11-16_215611\          ← une analyse
+      P1234_S5678_fe01_2026-11-16_215611.md      ← rapport complet
+      resume.md   a-verifier.md   resultats.json
+  _lots\
+    synthese_2026-11-16_220000\synthese_2026-11-16_220000.md   ← synthèse multi-projets
+```
 
 | Fichier | Contenu | Lecteur |
 |---|---|---|
 | `resume.md` | Note, top 15 des constats, contrôles partiels (≈ 40 lignes) | IA |
 | `a-verifier.md` | Points ambigus avec extrait de code (± 4 lignes) et consigne de verdict | IA |
-| `rapport.md` | Rapport complet : synthèse, notes par catégorie, évolution, contrôles effectués, détail de chaque constat (pourquoi / recommandation / occurrences), inventaire (domaines, ports, images, scripts npm, dépendances à script d'installation, tags, commits directs, MR) | Humain |
+| `<identifiant>_<horodatage>.md` | Rapport complet (codes produit / solution en tête) : synthèse, notes par catégorie, évolution, contrôles effectués, détail de chaque constat (pourquoi / recommandation / occurrences), inventaire (domaines, ports, images, scripts npm, dépendances à script d'installation, tags, commits directs, MR) | Humain |
 | `resultats.json` | Données complètes | Machine / CI |
 
-`reports/<nom>/derniere-analyse.json` sert de référence : l'analyse suivante signale les **nouveaux constats**, l'évolution de la note, les **tags déplacés** et l'**historique réécrit**.
+`reports/<identifiant>/derniere-analyse.json` sert de référence : l'analyse suivante signale les **nouveaux constats**, l'évolution de la note, les **tags déplacés** et l'**historique réécrit**.
 
 ## Notation
 

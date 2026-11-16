@@ -1,6 +1,8 @@
 {
   "_commentaire": "Configuration de l'audit. Pour le poste cible, copier ce fichier en settings.local.json (non versionné) et compléter les valeurs.",
   "gitlab": {
+    "_commentaire": "api : \"auto\" = utilisée si un token est présent ; false = jamais (analyse par clone local uniquement, sans avertissement).",
+    "api": "auto",
     "url": "",
     "tokenEnv": "GITLAB_TOKEN",
     "maxMergeRequests": 200,

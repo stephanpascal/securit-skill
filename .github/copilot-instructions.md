@@ -27,7 +27,8 @@ Le guide complet est dans [docs/GUIDE-DEVELOPPEMENT.md](../docs/GUIDE-DEVELOPPEM
 | `lib/shell-rules.js` | Règles partagées : `SHELL_RULES` (commandes dangereuses), `NET_RULES` (réseau, IA, blockchain, IOC) |
 | `lib/finding.js` | Format d'un constat, sévérités, catégories |
 | `lib/scoring.js` | Score /100, note A–E, plafonds |
-| `lib/report.js` | `rapport.md`, `resume.md`, `a-verifier.md`, `resultats.json`, synthèse de lot |
+| `lib/report.js` | Rapport complet `<identifiant>_<horodatage>.md`, `resume.md`, `a-verifier.md`, `resultats.json`, synthèse de lot |
+| `lib/cli.js` | Options, et identifiant des rapports : codes produit `pXXXX` / solution `sXXXX` lus dans l'URL + nom du projet (`P1234_S5678_fe01`) |
 | `scanners/*.js` | Un fichier par analyse (même interface `run(ctx)`) |
 | `rules/` | Données : paquets populaires (typosquatting), IOC (versions compromises, fichiers, domaines) |
 | `config/settings.json` | Configuration par défaut (surchargée par `settings.local.json`, non versionné) |
