@@ -171,6 +171,14 @@ Données qui quittent le poste via l'assistant IA : Copilot lit `resume.md` et `
 
 Créer `allowlists/<nom>.json` (voir `allowlists/exemple.json`) : chaque exclusion exige une **justification** et peut expirer. Les constats exclus restent visibles dans la section 5 du rapport.
 
+## Faire évoluer l'outil avec Copilot
+
+Ouvrez le dossier `skill-analyse` dans VS Code : Copilot charge automatiquement `.github/copilot-instructions.md` (règles impératives et plan du code). Le fonctionnement détaillé est dans [`docs/GUIDE-DEVELOPPEMENT.md`](docs/GUIDE-DEVELOPPEMENT.md).
+
+Deux prompts sont fournis (Copilot Chat, mode Agent) :
+- `/calibrer-sur-mes-projets fe01 <url>` : analyse un de vos projets, classe chaque constat (vrai problème / faux positif) et propose les ajustements (configuration, exclusions, règles), puis les applique avec tests après votre validation ;
+- `/nouvelle-regle <ce qu'il faut détecter>` : ajoute une vérification en respectant les conventions (règle, test, documentation).
+
 ## Transfert vers un autre poste
 
 Privilégier un **dépôt GitLab** (`git push`) : le `.gitignore` exclut déjà les fichiers générés. Pour une archive :
