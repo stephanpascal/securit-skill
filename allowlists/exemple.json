@@ -1,0 +1,17 @@
+{
+  "_commentaire": "Copier ce fichier en allowlists/<nom-du-projet>.json. Chaque exclusion exige une justification (10 caractères minimum) ; une date d'expiration est recommandée. Les constats exclus restent listés dans la section 5 du rapport.",
+  "exclusions": [
+    {
+      "regle": "CODE_ANGULAR_BYPASS",
+      "fichier": "src/app/shared/pipes/safe-html.pipe.ts",
+      "contient": "bypassSecurityTrustHtml",
+      "justification": "Pipe relu le 15/11/2026 : contenu issu uniquement du CMS interne, assaini en amont.",
+      "expire": "2027-06-30"
+    },
+    {
+      "regle": "DEP_SCRIPT_INSTALLATION",
+      "contient": "mon-paquet-interne@",
+      "justification": "Paquet interne : le postinstall copie des assets, script relu par l'équipe sécurité."
+    }
+  ]
+}

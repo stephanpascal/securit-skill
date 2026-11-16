@@ -1,0 +1,81 @@
+{
+  "_commentaire": "Configuration de l'audit. Pour le poste cible, copier ce fichier en settings.local.json (non versionné) et compléter les valeurs.",
+  "gitlab": {
+    "url": "",
+    "tokenEnv": "GITLAB_TOKEN",
+    "maxMergeRequests": 200,
+    "maxCommitsVerifies": 200
+  },
+  "npm": {
+    "artifactoryUrl": "",
+    "registresAutorises": ["https://registry.npmjs.org/"],
+    "scopesInternes": [],
+    "paquetsInternesNonScopes": [],
+    "tokenEnv": "NPM_TOKEN"
+  },
+  "docker": {
+    "registresAutorises": []
+  },
+  "helm": {
+    "depotsAutorises": []
+  },
+  "domaines": {
+    "internes": [],
+    "emailsDeveloppeurs": []
+  },
+  "git": {
+    "branchesProtegees": ["main", "master", "develop"],
+    "formatTag": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.]+)?$",
+    "periodeJours": 30,
+    "tagsMinimum": 5,
+    "maxCommits": 500
+  },
+  "ports": {
+    "attendus": [80, 443, 8080, 8443, 3000, 4200, 4000, 8000, 9000]
+  },
+  "enLigne": {
+    "osv": true,
+    "datesPublication": true,
+    "inspecterArchives": true,
+    "joursVersionRecente": 14,
+    "maxRequetes": 300,
+    "maxArchives": 40,
+    "verifierNomsInternesSurNpmPublic": false
+  },
+  "notation": {
+    "seuilEchecCI": "D"
+  },
+  "analyse": {
+    "tailleMaxFichierKo": 2048,
+    "extraitsAVerifier": 25
+  },
+  "profils": {
+    "_commentaire": "Ajustements par type de projet (fe, bff, helm). reglesInformatives : constats conservés dans le rapport mais ramenés à Info (hors note) et regroupés. verifierCommitsSansMR : false évite les appels API commit par commit.",
+    "helm": {
+      "_commentaire": "Dépôts de déploiement : mises à jour fréquentes et désordonnées, les merges et commits directs ne sont pas surveillés finement. Restent actifs : tags déplacés, historique réécrit, push forcé, code dangereux et secrets introduits, emails externes, dates futures.",
+      "verifierCommitsSansMR": false,
+      "reglesInformatives": [
+        "GIT_COMMIT_DIRECT_PROBABLE",
+        "GIT_MERGE_HORS_GITLAB",
+        "GIT_MESSAGE_TROMPEUR",
+        "GIT_ECART_DATES",
+        "GIT_NOUVEL_AUTEUR_FICHIERS_SENSIBLES",
+        "GIT_TAG_FORMAT",
+        "GITLAB_COMMIT_SANS_MR",
+        "GITLAB_PUSH_SUR_BRANCHE_PROTEGEE",
+        "GITLAB_PUSH_DIRECT_AUTORISE",
+        "GITLAB_MR_FUSIONNEE_SANS_APPROBATION",
+        "GITLAB_MR_AUTO_FUSIONNEE",
+        "GITLAB_MR_AUTO_APPROUVEE",
+        "GITLAB_MR_FUSION_AUTOMATIQUE",
+        "GITLAB_AUCUNE_APPROBATION_REQUISE",
+        "GITLAB_AUTO_APPROBATION_AUTORISEE",
+        "GITLAB_APPROBATION_COMMITTER_AUTORISEE",
+        "GITLAB_APPROBATIONS_NON_REINITIALISEES",
+        "GITLAB_FUSION_SANS_PIPELINE_REQUIS"
+      ]
+    },
+    "fe": { "reglesInformatives": [] },
+    "bff": { "reglesInformatives": [] }
+  }
+}

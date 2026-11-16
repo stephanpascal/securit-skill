@@ -1,0 +1,8 @@
+workspace/
+reports/
+config/settings.local.json
+tools/bin/
+tests/.tmp/
+tests/.tmp-securite/
+node_modules/
+*.log

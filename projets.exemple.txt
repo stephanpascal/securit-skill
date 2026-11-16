@@ -1,0 +1,8 @@
+# Liste de projets pour : node audit-lot.js --fichier projets.txt
+# Une ligne par projet : nom  url  [options propres au projet]
+# (format CSV accepté aussi : nom;url;options)   — les lignes commençant par # sont ignorées
+
+fe01      https://gitlab.entreprise.fr/equipe/fe01.git
+bff01     https://gitlab.entreprise.fr/equipe/bff01.git     --ref 2.3.1
+helm01    https://gitlab.entreprise.fr/equipe/helm01.git    --days 15
+# fe02    git@gitlab.entreprise.fr:equipe/fe02.git          --type fe

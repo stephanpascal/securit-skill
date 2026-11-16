@@ -1,0 +1,13 @@
+{
+  "name": "skill-analyse",
+  "version": "1.1.0",
+  "description": "Audit de sécurité statique (backdoors, code malveillant, scripts d'installation npm, Docker, nginx/apache, Helm, historique git) pour projets Angular, BFF Node.js et charts Helm.",
+  "private": true,
+  "license": "UNLICENSED",
+  "bin": { "skill-audit": "audit.js" },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "audit": "node audit.js",
+    "test": "node tests/run-tests.js && node tests/securite.js && node tests/gitlab-mock.js"
+  }
+}

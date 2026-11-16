@@ -1,0 +1,24 @@
+# Exemple de job GitLab CI (pour plus tard) : audit du projet courant à chaque pipeline.
+# Hypothèse : le dépôt skill-analyse est accessible depuis la CI (ici cloné via CI_JOB_TOKEN).
+# Le rapport est toujours produit (artefact) ; le job échoue si la note atteint le seuil
+# configuré (notation.seuilEchecCI, D par défaut) grâce à l'option --ci (code de sortie 2).
+
+security-audit:
+  stage: test
+  image: node:20-alpine
+  variables:
+    GIT_DEPTH: "0"            # historique complet nécessaire à l'analyse git
+    AUDIT_REPO: "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.exemple.fr/securite/skill-analyse.git"
+  before_script:
+    - apk add --no-cache git
+    - git clone --depth 1 "$AUDIT_REPO" /opt/skill-analyse
+    - git fetch --tags --force
+  script:
+    # GITLAB_TOKEN (read_api) à définir en variable CI masquée pour les contrôles MR / approbations
+    - node /opt/skill-analyse/audit.js "$CI_PROJECT_NAME" "$CI_PROJECT_URL" --path "$CI_PROJECT_DIR" --out "$CI_PROJECT_DIR/audit" --ci --no-save
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - audit/
+  allow_failure: false
